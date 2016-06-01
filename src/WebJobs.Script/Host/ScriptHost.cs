@@ -377,6 +377,9 @@ namespace Microsoft.Azure.WebJobs.Script
 
             switch (bindingType)
             {
+                case BindingType.OutgoingHttpRequest:
+                    bindingMetadata = binding.ToObject<OutgoingHttpRequestBindingMetadata>();
+                    break;
                 case BindingType.EventHubTrigger:
                 case BindingType.EventHub:
                     bindingMetadata = binding.ToObject<EventHubBindingMetadata>();

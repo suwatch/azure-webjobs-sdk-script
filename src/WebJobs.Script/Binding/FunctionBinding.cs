@@ -14,6 +14,7 @@ using Microsoft.Azure.WebJobs.Host.Bindings.Path;
 using Microsoft.Azure.WebJobs.Host.Bindings.Runtime;
 using Microsoft.Azure.WebJobs.Script.Description;
 using Newtonsoft.Json.Linq;
+using OutgoingHttpRequestWebJobsExtension;
 
 namespace Microsoft.Azure.WebJobs.Script.Binding
 {
@@ -46,6 +47,9 @@ namespace Microsoft.Azure.WebJobs.Script.Binding
                 {
                     switch (bindingMetadata.Type)
                     {
+                        case BindingType.OutgoingHttpRequest:
+                            var outgoingHttpRequestBindingMetadata = (OutgoingHttpRequestBindingMetadata)bindingMetadata;
+                            break;
                         case BindingType.Blob:
                         case BindingType.BlobTrigger:
                             BlobBindingMetadata blobBindingMetadata = (BlobBindingMetadata)bindingMetadata;

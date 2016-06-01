@@ -5,6 +5,7 @@ namespace Microsoft.Azure.WebJobs.Script.Description
 {
     public enum BindingType
     {
+        OutgoingHttpRequest,
         Queue,
         QueueTrigger,
         EventHub,

@@ -158,6 +158,9 @@
       <HintPath>..\..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="OutgoingHttpRequestWebJobsExtension">
+      <HintPath>..\..\..\OutgoingHttpRequestWebJobsExtension\OutgoingHttpRequestWebJobsExtension\bin\Debug\OutgoingHttpRequestWebJobsExtension.dll</HintPath>
+    </Reference>
     <Reference Include="SendGrid, Version=6.3.4.0, Culture=neutral, PublicKeyToken=4f047e93159395ca, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Sendgrid.6.3.4\lib\SendGrid.dll</HintPath>
       <Private>True</Private>
@@ -241,6 +244,7 @@
     <Compile Include="Binding\ApiHubTableBinding.cs" />
     <Compile Include="Binding\ApiHubBinding.cs" />
     <Compile Include="Binding\BindingContext.cs" />
+    <Compile Include="Binding\OutgoingHttpRequestBinding.cs" />
     <Compile Include="Binding\BlobBinding.cs" />
     <Compile Include="Binding\NotificationHubBinding.cs" />
     <Compile Include="Binding\DocumentDBBinding.cs" />
@@ -252,6 +256,7 @@
     <Compile Include="Binding\QueueBinding.cs" />
     <Compile Include="Binding\ServiceBusBinding.cs" />
     <Compile Include="Binding\TableBinding.cs" />
+    <Compile Include="Description\Binding\OutgoingHttpRequestBindingMetadata.cs" />
     <Compile Include="Description\DotNet\DiagnosticExtensions.cs" />
     <Compile Include="Description\DotNet\CSharp\Analyzers\InvalidFileMetadataReferenceAnalyzer.cs" />
     <Compile Include="Description\Binding\ApiHubTableBindingMetadata.cs" />
