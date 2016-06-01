@@ -5,6 +5,7 @@ namespace Microsoft.Azure.WebJobs.Script.Description
 {
     public class OutgoingHttpRequestBindingMetadata : BindingMetadata
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1056:UriPropertiesShouldNotBeStrings")]
         public string Uri { get; set; }
     }
 }

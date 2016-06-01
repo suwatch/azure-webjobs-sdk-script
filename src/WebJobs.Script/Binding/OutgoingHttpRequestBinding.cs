@@ -29,6 +29,7 @@ namespace Microsoft.Azure.WebJobs.Script.Binding
             _uriBindingTemplate = BindingTemplate.FromString(Uri);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1056:UriPropertiesShouldNotBeStrings")]
         public string Uri { get; private set; }
 
         public override async Task BindAsync(BindingContext context)
@@ -49,19 +50,11 @@ namespace Microsoft.Azure.WebJobs.Script.Binding
 
         public override Collection<CustomAttributeBuilder> GetCustomAttributes(Type parameterType)
         {
-            FileAccess access = GetAttributeAccess(parameterType);
-
             var constructorTypes = new Type[] { typeof(string) };
             var constructorArguments = new object[] { Uri };
             var attribute = new CustomAttributeBuilder(typeof(OutgoingHttpRequestAttribute).GetConstructor(constructorTypes), constructorArguments);
 
             return new Collection<CustomAttributeBuilder>() { attribute };
-        }
-
-        private FileAccess GetAttributeAccess(Type parameterType)
-        {
-            // TODO: is this correct?
-            return FileAccess.Write;
         }
     }
 }

@@ -37,6 +37,7 @@ namespace Microsoft.Azure.WebJobs.Script.Binding
 
         public abstract Collection<CustomAttributeBuilder> GetCustomAttributes(Type parameterType);
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         internal static Collection<FunctionBinding> GetBindings(ScriptHostConfiguration config, IEnumerable<BindingMetadata> bindingMetadatas, FileAccess fileAccess)
         {
             Collection<FunctionBinding> bindings = new Collection<FunctionBinding>();
@@ -49,6 +50,7 @@ namespace Microsoft.Azure.WebJobs.Script.Binding
                     {
                         case BindingType.OutgoingHttpRequest:
                             var outgoingHttpRequestBindingMetadata = (OutgoingHttpRequestBindingMetadata)bindingMetadata;
+                            bindings.Add(new OutgoingHttpRequestBinding(config, outgoingHttpRequestBindingMetadata, fileAccess));
                             break;
                         case BindingType.Blob:
                         case BindingType.BlobTrigger:
