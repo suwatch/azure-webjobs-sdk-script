@@ -3,6 +3,7 @@
 
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Azure.WebJobs.ServiceBus;
+using OutgoingHttpRequestWebJobsExtension;
 
 namespace Microsoft.Azure.WebJobs.Script.Description
 {
@@ -27,6 +28,7 @@ namespace Microsoft.Azure.WebJobs.Script.Description
 
         public void Done()
         {
+            this.Config.UseOutgoingHttpRequests();
             this.Config.UseEventHub(this.EventHubConfiguration);
             this.Config.UseMobileApps();
             this.Config.UseDocumentDB();
