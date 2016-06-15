@@ -12,6 +12,10 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Extensions;
+using Microsoft.Azure.WebJobs.Extensions.ApiHub;
+using Microsoft.Azure.WebJobs.Extensions.DocumentDB;
+using Microsoft.Azure.WebJobs.Extensions.MobileApps;
+using Microsoft.Azure.WebJobs.Extensions.NotificationHubs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Azure.WebJobs.Host.Indexers;
 using Microsoft.Azure.WebJobs.Script.Config;
@@ -151,7 +155,7 @@ namespace Microsoft.Azure.WebJobs.Script
                 TraceWriter = new ConsoleTraceWriter(hostTraceLevel);
             }
 
-            var bindingProviders = LoadBindingProviders(ScriptConfig.HostConfig, hostConfig, TraceWriter);
+            var bindingProviders = LoadBindingProviders(ScriptConfig, hostConfig, TraceWriter);
             ScriptConfig.BindingProviders = bindingProviders;
 
             TraceWriter.Info(string.Format(CultureInfo.InvariantCulture, "Reading host configuration file '{0}'", hostConfigFilePath));
@@ -327,47 +331,72 @@ namespace Microsoft.Azure.WebJobs.Script
             return scriptHost;
         }
 
-        private static Collection<ScriptBindingProvider> LoadBindingProviders(JobHostConfiguration hostConfig, JObject hostMetadata, TraceWriter traceWriter)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods", MessageId = "System.Reflection.Assembly.LoadFrom")]
+        private static Collection<ScriptBindingProvider> LoadBindingProviders(ScriptHostConfiguration config, JObject hostMetadata, TraceWriter traceWriter)
         {
-            // Register our built in extensions (binding providers defined in this assembly)
+            JobHostConfiguration hostConfig = config.HostConfig;
+
+            // Register our built in extensions
             var bindingProviderTypes = new Collection<Type>()
             {
+                // binding providers defined in this assembly
                 typeof(WebJobsCoreScriptBindingProvider), 
-                typeof(ServiceBusScriptBindingProvider)
+                typeof(ServiceBusScriptBindingProvider),
+
+                // binding providers defined in known extension assemblies
+                typeof(CoreExtensionsScriptBindingProvider),
+                typeof(ApiHubScriptBindingProvider),
+                typeof(DocumentDBScriptBindingProvider),
+                typeof(MobileAppsScriptBindingProvider),
+                typeof(NotificationHubScriptBindingProvider)
             };
 
             // Dynamically discover any additional binding provider types
-            // TODO: Here is where we'll dynamically discover and load extension
-            // assemblies
-            string[] extensionAssemblies = new string[]
+            if (!string.IsNullOrEmpty(config.ExtensionsPath) &&
+                Directory.Exists(config.ExtensionsPath))
             {
-                "Microsoft.Azure.WebJobs.Extensions",
-                "Microsoft.Azure.WebJobs.Extensions.ApiHub",
-                "Microsoft.Azure.WebJobs.Extensions.DocumentDB",
-                "Microsoft.Azure.WebJobs.Extensions.MobileApps",
-                "Microsoft.Azure.WebJobs.Extensions.NotificationHubs"
-            };
-            foreach (var assemblyName in extensionAssemblies)
-            {
-                try
+                foreach (var extensionSubDir in Directory.EnumerateDirectories(config.ExtensionsPath))
                 {
-                    Assembly assembly = Assembly.Load(assemblyName);
-                    if (assembly != null)
+                    string manifestFilePath = Path.Combine(extensionSubDir, ScriptConstants.ExtensionManifestFileName);
+                    JObject manifest = null;
+                    if (File.Exists(manifestFilePath))
                     {
-                        foreach (var type in assembly.GetExportedTypes().Where(t => typeof(ScriptBindingProvider).IsAssignableFrom(t)))
+                        string manifestJson = File.ReadAllText(manifestFilePath);
+                        manifest = JObject.Parse(manifestJson);
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    string name = (string)manifest["name"];
+                    string assemblyName = (string)manifest["assembly"];
+                    if (!assemblyName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                    {
+                        assemblyName += ".dll";
+                    }
+                    string filePath = Path.Combine(extensionSubDir, assemblyName);
+                    try
+                    {
+                        Assembly assembly = Assembly.LoadFrom(filePath);
+                        if (assembly != null)
                         {
-                            bindingProviderTypes.Add(type);
+                            foreach (var type in assembly.GetExportedTypes().Where(t => typeof(ScriptBindingProvider).IsAssignableFrom(t)))
+                            {
+                                bindingProviderTypes.Add(type);
+                                traceWriter.Verbose(string.Format("{0} binding extension loaded", name));
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    // If we're unable to load an extension assembly for any reason, log
-                    // the error and continue
-                    traceWriter.Error(string.Format("Error loading extension assembly '{0}'", assemblyName), ex);
+                    catch
+                    {
+                        // Ignore the error if we're unable to load a candidate assembly
+                        // for whatever reason
+                        traceWriter.Error(string.Format("Error loading {0} binding extension", name));
+                    }
                 }
             }
-
+            
             // Create the binding providers
             var bindingProviders = new Collection<ScriptBindingProvider>();
             foreach (var bindingProviderType in bindingProviderTypes)
