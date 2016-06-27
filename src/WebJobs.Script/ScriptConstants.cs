@@ -14,5 +14,6 @@ namespace Microsoft.Azure.WebJobs.Script
         public const string HostMetadataFileName = "host.json";
 
         internal const string FunctionMetadataFileName = "function.json";
+        internal const string EnvironmentFileName = "env.json";
     }
 }

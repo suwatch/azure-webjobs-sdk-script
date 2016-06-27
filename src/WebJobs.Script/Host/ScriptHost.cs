@@ -762,9 +762,10 @@ namespace Microsoft.Azure.WebJobs.Script
         {
             string fileName = Path.GetFileName(e.Name);
 
-            if (((string.Compare(fileName, ScriptConstants.HostMetadataFileName, StringComparison.OrdinalIgnoreCase) == 0) ||
-                string.Compare(fileName, ScriptConstants.FunctionMetadataFileName, StringComparison.OrdinalIgnoreCase) == 0) ||
-                (Directory.EnumerateDirectories(ScriptConfig.RootScriptPath).Count() != _directoryCountSnapshot))
+            if (string.Compare(fileName, ScriptConstants.HostMetadataFileName, StringComparison.OrdinalIgnoreCase) == 0 ||
+                string.Compare(fileName, ScriptConstants.FunctionMetadataFileName, StringComparison.OrdinalIgnoreCase) == 0 ||
+                string.Compare(fileName, ScriptConstants.EnvironmentFileName, StringComparison.OrdinalIgnoreCase) == 0 ||
+                Directory.EnumerateDirectories(ScriptConfig.RootScriptPath).Count() != _directoryCountSnapshot)
             {
                 // a host level configuration change has been made which requires a
                 // host restart

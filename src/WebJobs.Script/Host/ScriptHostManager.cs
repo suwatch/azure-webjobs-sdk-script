@@ -4,12 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Azure.WebJobs.Script.Diagnostics;
+using Newtonsoft.Json;
 
 namespace Microsoft.Azure.WebJobs.Script
 {
@@ -70,6 +72,19 @@ namespace Microsoft.Azure.WebJobs.Script
             // host level configuration files change
             do
             {
+                string envFilePath = Path.Combine(_config.RootScriptPath, ScriptConstants.EnvironmentFileName);
+                _traceWriter.Info($"env file path: {envFilePath}");
+                if (File.Exists(envFilePath))
+                {
+                    _traceWriter.Info($"env file exists!");
+                    var d = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(envFilePath));
+                    foreach (var pair in d)
+                    {
+                        _traceWriter.Info($"{pair.Key}={pair.Value}");
+                        Environment.SetEnvironmentVariable(pair.Key, pair.Value);
+                    }
+                }
+
                 ScriptHost newInstance = null;
                 try
                 {
