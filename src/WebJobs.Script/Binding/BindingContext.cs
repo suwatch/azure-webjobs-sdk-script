@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Azure.WebJobs.Host.Bindings.Runtime;
 using Microsoft.Azure.WebJobs.Script.Description;
 
 namespace Microsoft.Azure.WebJobs.Script.Binding
@@ -11,7 +10,7 @@ namespace Microsoft.Azure.WebJobs.Script.Binding
     public class BindingContext
     {
         /// <summary>
-        /// The collection of Attributes to bind.
+        /// Gets or sets the collection of Attributes to bind.
         /// </summary>
         public Attribute[] Attributes { get; set; }
 
@@ -31,10 +30,15 @@ namespace Microsoft.Azure.WebJobs.Script.Binding
         public DataType DataType { get; set; }
 
         /// <summary>
+        /// Gets or sets the cardinality hint for the binding.
+        /// </summary>
+        public Cardinality Cardinality { get; set; }
+
+        /// <summary>
         /// Gets or sets the target value the binding is binding to.
         /// </summary>
         public object Value { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the collection of binding data for this invocation.
         /// </summary>

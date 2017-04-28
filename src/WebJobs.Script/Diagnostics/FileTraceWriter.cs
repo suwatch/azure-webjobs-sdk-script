@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Timers;
 using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Azure.WebJobs.Script.Config;
 
 namespace Microsoft.Azure.WebJobs.Script
 {
@@ -19,9 +20,9 @@ namespace Microsoft.Azure.WebJobs.Script
         internal const int LastModifiedCutoffDays = 1;
         private const long MaxLogFileSizeBytes = 5 * 1024 * 1024;
         internal const int LogFlushIntervalMs = 1000;
+        internal const int MaxLogLinesPerFlushInterval = 250;
         private readonly string _logFilePath;
         private readonly string _instanceId;
-        private readonly int _processId;
 
         private readonly DirectoryInfo _logDirectory;
         private static object _syncLock = new object();
@@ -35,7 +36,6 @@ namespace Microsoft.Azure.WebJobs.Script
         {
             _logFilePath = logFilePath;
             _instanceId = GetInstanceId();
-            _processId = Process.GetCurrentProcess().Id;
 
             _logDirectory = new DirectoryInfo(logFilePath);
             if (!_logDirectory.Exists)
@@ -132,7 +132,27 @@ namespace Microsoft.Azure.WebJobs.Script
                 throw new ArgumentNullException("traceEvent");
             }
 
+            object value;
+            if (traceEvent.Properties.TryGetValue(ScriptConstants.TracePropertyIsSystemTraceKey, out value)
+                && value is bool && (bool)value)
+            {
+                // we don't want to write system traces to the user trace files
+                return;
+            }
+
+            if (Level < traceEvent.Level || _logBuffer.Count > MaxLogLinesPerFlushInterval)
+            {
+                return;
+            }
+
+            if (_logBuffer.Count == MaxLogLinesPerFlushInterval)
+            {
+                AppendLine("Log output threshold exceeded.");
+                return;
+            }
+
             AppendLine(traceEvent.Message);
+
             if (traceEvent.Exception != null)
             {
                 if (traceEvent.Exception is FunctionInvocationException ||
@@ -150,7 +170,7 @@ namespace Microsoft.Azure.WebJobs.Script
                 }
                 else
                 {
-                    AppendLine(traceEvent.Exception.ToString());
+                    AppendLine(traceEvent.Exception.ToFormattedString());
                 }
             }
         }
@@ -202,12 +222,12 @@ namespace Microsoft.Azure.WebJobs.Script
         {
             // purge any log files (regardless of instance ID) whose last write time was earlier
             // than our retention policy
-            var filesToPurge = _logDirectory.GetFiles("*.log").Where(p => (DateTime.Now - p.LastWriteTime).TotalDays > LastModifiedCutoffDays);
+            var filesToPurge = _logDirectory.GetFiles("*.log").Where(p => (DateTime.UtcNow - p.LastWriteTimeUtc).TotalDays > LastModifiedCutoffDays);
             DeleteFiles(filesToPurge);
 
             // we include a machine identifier in the log file name to ensure we don't have any
             // log file contention between scaled out instances
-            string filePath = Path.Combine(_logFilePath, string.Format(CultureInfo.InvariantCulture, "{0}-{1}-{2}.log", DateTime.UtcNow.ToString("yyyy-MM-ddTHH-mm-ssK"), _instanceId, _processId));
+            string filePath = Path.Combine(_logFilePath, string.Format(CultureInfo.InvariantCulture, "{0}-{1}.log", DateTime.UtcNow.ToString("yyyy-MM-ddTHH-mm-ssK"), _instanceId));
             _currentLogFileInfo = new FileInfo(filePath);
         }
 
@@ -234,7 +254,7 @@ namespace Microsoft.Azure.WebJobs.Script
 
         internal static string GetInstanceId()
         {
-            string instanceId = System.Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID");
+            string instanceId = ScriptSettingsManager.Instance.GetSetting(EnvironmentSettingNames.AzureWebsiteInstanceId);
             if (string.IsNullOrEmpty(instanceId))
             {
                 instanceId = Environment.MachineName;

@@ -1,6 +1,20 @@
 {
-    "id": "5a709861cab44e68bfed5d2c2fe7fc0c",
+    "watchDirectories": [ "Shared" ],
     "sendGrid": {
         "from": "Azure Functions <samples@functions.com>"
+    },
+    "http": {
+        "routePrefix": "api",
+        "maxConcurrentRequests": 5,
+        "maxOutstandingRequests": 30
+    },
+    "tracing": {
+        "fileLoggingMode": "always"
+    },
+    "queues": {
+        "visibilityTimeout": "00:00:10"
+    },
+    "swagger": {
+        "enabled": true
     }
 }

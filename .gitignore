@@ -9,8 +9,10 @@ Publish
 *.suo
 *.cscfg
 *.Cache
+msbuild.log
 
 /packages
 /TestResults
 
 /tools/NuGet.exe
+/node_modules

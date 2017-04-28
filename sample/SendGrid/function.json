@@ -8,9 +8,11 @@
         },
         {
             "type": "sendGrid",
-            "name": "message",
+            "name": "$return",
             "direction": "out",
-            "to": "{customerEmail}"
+            "apiKey" : "MySendGridKey",
+            "to": "{customerEmail}",
+            "from": "functions@azure.com"
         }
     ]
 }

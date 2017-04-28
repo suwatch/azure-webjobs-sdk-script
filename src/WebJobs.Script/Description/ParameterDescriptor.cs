@@ -3,11 +3,13 @@
 
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
 
 namespace Microsoft.Azure.WebJobs.Script.Description
 {
+    [DebuggerDisplay("{Name} ({Type.FullName})")]
     public class ParameterDescriptor
     {
         public ParameterDescriptor(string name, Type type)
@@ -15,7 +17,7 @@ namespace Microsoft.Azure.WebJobs.Script.Description
         {
         }
 
-        public ParameterDescriptor(string name, Type type, Collection<CustomAttributeBuilder> attributes) 
+        public ParameterDescriptor(string name, Type type, Collection<CustomAttributeBuilder> attributes)
         {
             Name = name;
             Type = type;
